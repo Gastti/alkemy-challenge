@@ -2,7 +2,7 @@ const { uploadNewFile } = require("../helpers/upload-file");
 
 const uploadFile = async (req, res) => {
 
-    if (!req.files || !req.files.file || Object.keys(req.files).length === 0) {
+    if (!req.files || !req.files.img || Object.keys(req.files).length === 0) {
         res.status(400).json({ msg: 'No hay archivos para subir.' });
         return;
     }

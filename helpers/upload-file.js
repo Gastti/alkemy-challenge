@@ -5,8 +5,8 @@ const uploadNewFile = (files, validExtension, folder = '') => {
 
     return new Promise((resolve, reject) => {
 
-        const { file } = files;
-        const cutName = file.name.split('.');
+        const { img } = files;
+        const cutName = img.name.split('.');
         const extension = cutName[cutName.length - 1];
 
         if (!validExtension.includes(extension)) {
@@ -16,7 +16,7 @@ const uploadNewFile = (files, validExtension, folder = '') => {
         const tempName = uuidv4() + '.' + extension;
         const uploadPath = path.join(__dirname, '../uploads/', folder, tempName);
 
-        file.mv(uploadPath, (err) => {
+        img.mv(uploadPath, (err) => {
             if (err) {
                 return reject(err);
             }
@@ -25,7 +25,6 @@ const uploadNewFile = (files, validExtension, folder = '') => {
         });
 
     })
-
 
 }
 

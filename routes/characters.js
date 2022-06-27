@@ -13,6 +13,7 @@ const {
 
 const { validateForm } = require('../middlewares/form-validations');
 const { JWTValidation } = require('../middlewares/jwt-validations');
+const { validateImage } = require('../middlewares/img-validations')
 
 // Routes
 const router = Router();
@@ -24,17 +25,18 @@ router.get('/:idChar', getCharacterDetails);
 router.post('/', [
     JWTValidation,
     check('name', 'Debes introducir un nombre.').not().isEmpty(),
-    check('image', 'Debes introducir una imagen.').not().isEmpty(),
     check('age', 'Debes introducir la edad.').not().isEmpty(),
     check('age', 'La edad debe ser un número.').isNumeric(),
     check('weight', 'Debes introducir el peso.').not().isEmpty(),
     check('weight', 'El peso debe ser un número.').isNumeric(),
     check('story', 'El personaje debe tener al menos una breve historia.').not().isEmpty(),
+    validateImage,
     validateForm
 ], postCharacter);
 
 router.put('/:idChar',[
     JWTValidation,
+    check('name').optional(),
     check('age', 'La edad debe ser un número.').isNumeric().optional(),
     check('weight', 'El peso debe ser un número.').isNumeric().optional(),
     validateForm

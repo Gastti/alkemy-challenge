@@ -1,6 +1,7 @@
 const { response } = require('express');
 const Character = require('../models/character');
 const Movie = require('../models/movie');
+const { uploadNewFile } = require('../helpers/upload-file');
 
 const getCharacters = async (req, res = response) => {
 
@@ -10,7 +11,7 @@ const getCharacters = async (req, res = response) => {
 
         const characters = await Character.findAll({
             where: { name: name },
-            attributes: ['name', 'image']
+            attributes: ['name', 'img']
         })
 
         return res.json({
@@ -23,7 +24,7 @@ const getCharacters = async (req, res = response) => {
 
         const characters = await Character.findAll({
             where: { age: age },
-            attributes: ['name', 'image', 'age']
+            attributes: ['name', 'img', 'age']
         })
 
         return res.json({
@@ -32,7 +33,7 @@ const getCharacters = async (req, res = response) => {
 
     }
 
-    const characters = await Character.findAll({ attributes: ['name', 'image'] });
+    const characters = await Character.findAll({ attributes: ['name', 'img'] });
 
     res.json({
         data: characters
@@ -58,7 +59,7 @@ const getCharacterDetails = async (req, res) => {
         },
         include: [{
             model: Movie,
-            attributes: ['title', 'image'],
+            attributes: ['title', 'img'],
             through: {
                 attributes: []
             }
@@ -75,30 +76,44 @@ const getCharacterDetails = async (req, res) => {
 
 const postCharacter = async (req, res) => {
 
-    const { name, image, age, weight, story } = req.body;
-    const character = await Character.findOrCreate({
-        where: { name: name },
-        defaults: {
-            name,
-            image,
-            age,
-            weight,
-            story
-        }
-    })
+    try {
 
-    const characterCreated = character[0];
-    const characterExists = character[1];
-
-    if (!characterExists) {
-        return res.status(400).json({
-            msg: `El personaje "${name}" ya existe.`
+        const { name, age, weight, story } = req.body;
+        const character = await Character.findOrCreate({
+            where: { name: name },
+            defaults: {
+                name,
+                age,
+                weight,
+                story
+            }
         })
+
+        const characterExists = character[1];
+        if (!characterExists) {
+            return res.status(400).json({
+                msg: `El personaje "${name}" ya existe.`
+            })
+        }
+
+        const characterData = character[0];
+        const image = await uploadNewFile(req.files, ['png', 'jpg', 'jpeg', 'gif'], 'characters');
+        characterData.img = image;
+        await characterData.save();
+
+        res.json({
+            data: characterData
+        })
+
+    } catch (err) {
+
+        console.log(err);
+        return res.status(500).json({
+            msg: 'Error en postCharacter desde "characters.controllers.js", hable con un administrador.'
+        })
+
     }
 
-    res.json({
-        data: characterCreated
-    })
 
 }
 
@@ -107,10 +122,13 @@ const updateCharacter = async (req, res) => {
     try {
 
         const { idChar } = req.params;
-        const { image, name, age, weight, story } = req.body;
+        const { name, age, weight, story } = req.body;
 
         const character = await Character.findByPk(idChar)
-        const characterExists = await Character.findOne({ where: { name: name } });
+        let characterExists;
+        if (name) {
+            characterExists = await Character.findOne({ where: { name: name } });
+        }
 
         if (!character) {
             return res.status(400).json({
@@ -124,7 +142,12 @@ const updateCharacter = async (req, res) => {
             })
         }
 
-        if (image) character.image = image;
+        if (req.files) {
+            const image = await uploadNewFile(req.files, ['png', 'jpg', 'jpeg', 'gif'], 'images');
+            character.img = image;
+            await character.save();
+        }
+
         if (name) character.name = name;
         if (age) character.age = age;
         if (weight) character.weight = weight;

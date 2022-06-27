@@ -1,8 +1,8 @@
 const { response } = require('express');
-const { Op } = require("sequelize");
 const Movie = require('../models/movie');
 const Genre = require('../models/genre');
 const Character = require('../models/character');
+const { uploadNewFile } = require('../helpers/upload-file');
 
 const getMovies = async (req, res = response) => {
 
@@ -13,7 +13,7 @@ const getMovies = async (req, res = response) => {
         if (name) {
             const movies = await Movie.findAll({
                 where: { title: name },
-                attributes: ['title', 'image']
+                attributes: ['title', 'img']
             });
 
             return res.json({
@@ -29,7 +29,7 @@ const getMovies = async (req, res = response) => {
             })
         }
 
-        const movies = await Movie.findAll({ attributes: ['title', 'image'] });
+        const movies = await Movie.findAll({ attributes: ['title', 'img'] });
 
         res.json({
             data: movies
@@ -68,21 +68,24 @@ const getMovieDetails = async (req, res) => {
 
         const movieDetails = await Movie.findOne({
             where: { id: idMovie },
+            attributes: ['id', 'img', 'title', 'score', 'createdAt'],
             include: [
                 {
                     model: Character,
-                    attributes: ['name', 'image'],
+                    attributes: ['name', 'img'],
                     through: {
                         attributes: []
                     }
-                }, {
+                },
+                {
                     model: Genre,
-                    attributes: ['name'],
-                    through: {
-                        attributes: []
-                    }
+                    as: 'genre',
+                    attributes: ['name']
                 }]
         })
+
+        movieDetails.genress = 'Prueba'
+        await movieDetails.save();
 
         res.json({
             data: movieDetails
@@ -103,29 +106,32 @@ const postMovie = async (req, res) => {
 
     try {
 
-        const { image, title, score, genre } = req.body;
+        const { title, score, id_genre } = req.body;
         const movie = await Movie.findOrCreate({
             where: { title: title },
             defaults: {
-                image,
                 title,
-                score
+                score,
+                id_genre,
+                genreId: id_genre
             }
         });
 
-        const movieCreated = movie[0];
-        movieCreated.addGenre(genre);
-
         const movieExists = movie[1];
-
         if (!movieExists) {
             return res.status(400).json({
                 msg: `La pelicula "${title}" ya existe.`
             })
         }
 
+        const movieData = movie[0];
+        const image = await uploadNewFile(req.files, ['png', 'jpg', 'jpeg', 'gif'], 'movies');
+        movieData.img = image;
+
+        await movieData.save();
+
         res.json({
-            data: movieCreated
+            data: movieData
         })
 
     } catch (err) {
@@ -144,10 +150,13 @@ const updateMovie = async (req, res) => {
     try {
 
         const { idMovie } = req.params;
-        const { image, title, score } = req.body;
+        const { title, score } = req.body;
 
         const movie = await Movie.findByPk(idMovie);
-        const movieExists = await Movie.findOne({ where: { title: title } });
+        let movieExists;
+        if (title) {
+            movieExists = await Movie.findOne({ where: { title: title } });
+        }
 
         if (!movie) {
             return res.status(400).json({
@@ -155,13 +164,19 @@ const updateMovie = async (req, res) => {
             })
         }
 
+
         if (movieExists) {
             return res.status(400).json({
                 msg: 'Este nombre ya está en uso.'
             })
         }
 
-        if (image) movie.image = image;
+        if (req.files) {
+            const image = await uploadNewFile(req.files, ['png', 'jpg', 'jpeg', 'gif'], 'images');
+            movie.img = image;
+            await movie.save();
+        }
+
         if (title) movie.title = title;
         if (score) movie.score = score;
 

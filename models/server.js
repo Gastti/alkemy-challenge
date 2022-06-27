@@ -11,9 +11,10 @@ class Server {
         this.app = express();
         this.port = process.env.PORT || 8080;
         this.paths = {
-            characters: '/characters',
-            movies: '/movies',
             auth: '/auth',
+            characters: '/characters',
+            genres: '/genres',
+            movies: '/movies',
             upload: '/upload'
         }
 
@@ -25,24 +26,8 @@ class Server {
     async connectToDatabase() {
         try {
 
-            const genres = [
-                { name: 'Acción', image: 'non-image.png' },
-                { name: 'Aventuras', image: 'non-image.png' },
-                { name: 'Ciencia Ficción', image: 'non-image.png' },
-                { name: 'Comedia', image: 'non-image.png' },
-                { name: 'Documental', image: 'non-image.png' },
-                { name: 'Drama', image: 'non-image.png' },
-                { name: 'Fantasía', image: 'non-image.png' },
-                { name: 'Musical', image: 'non-image.png' },
-                { name: 'Suspenso', image: 'non-image.png' },
-                { name: 'Terror', image: 'non-image.png' }
-            ]
-
-            await db.sync({ force: true }).then(() => {
+            await db.sync({ force: false }).then(() => {
                 console.log('Database Online.'.green);
-            }).then(() => {
-                // Crear Generos
-                genres.forEach(genre => Genre.create(genre))
             })
 
         } catch (err) {
@@ -70,10 +55,11 @@ class Server {
     }
 
     routes() {
+        this.app.use(this.paths.auth, require('../routes/auth')),
         this.app.use(this.paths.characters, require('../routes/characters')),
-            this.app.use(this.paths.movies, require('../routes/movies')),
-            this.app.use(this.paths.auth, require('../routes/auth')),
-            this.app.use(this.paths.upload, require('../routes/upload'))
+        this.app.use(this.paths.genres, require('../routes/genres')),
+        this.app.use(this.paths.movies, require('../routes/movies')),
+        this.app.use(this.paths.upload, require('../routes/upload'))
     }
 
     listen() {

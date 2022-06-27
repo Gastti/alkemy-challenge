@@ -5,10 +5,12 @@ const Movie = require('./movie');
 const Genre = db.define('genres', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     name: { type: DataTypes.TEXT },
-    image: { type: DataTypes.TEXT },
+    img: { type: DataTypes.TEXT },
+}, {
+    timestamps: false
 });
 
-Genre.belongsToMany(Movie, { through: 'genres__movies', timestamps: false })
-Movie.belongsToMany(Genre, { through: 'genres__movies', timestamps: false })
+Genre.hasMany(Movie, { as: 'movies', foreignKey: 'id_genre'})
+Movie.belongsTo(Genre, { as: 'genre' })
 
 module.exports = Genre;
