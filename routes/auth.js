@@ -8,9 +8,7 @@ const router = Router();
 
 router.post('/register', [
     check('nickname', 'Debes introducir un nickname.').not().isEmpty(),
-    // check('nickname').custom(nicknameExists),
     check('email', 'Debes introducir un email.').not().isEmpty(),
-    // check('email').custom(emailExists),
     check('email', 'El email no es válido.').isEmail(),
     check('password', 'Debes introducir una contraseña.').not().isEmpty(),
     validateForm

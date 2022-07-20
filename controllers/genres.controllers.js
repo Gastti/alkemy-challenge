@@ -54,7 +54,7 @@ const postGenre = async (req, res) => {
 
         const genreData = genre[0];
         const image = await uploadNewFile(req.files, ['png', 'jpg', 'jpeg', 'gif'], 'genres');
-        genreData.img = image;
+        genreData.img = `/uploads/genres/${image}`;
 
         await genreData.save();
 
@@ -70,8 +70,6 @@ const postGenre = async (req, res) => {
     }
 
 }
-
-const updateGenre = 
 
 module.exports = {
     getGenres,

@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const db = require('../database/config');
 const colors = require('colors');
-const Genre = require('./genre');
 const fileUpload = require('express-fileupload');
 
 class Server {
@@ -15,7 +14,7 @@ class Server {
             characters: '/characters',
             genres: '/genres',
             movies: '/movies',
-            upload: '/upload'
+            upload: '/uploads'
         }
 
         this.connectToDatabase();
@@ -59,12 +58,12 @@ class Server {
         this.app.use(this.paths.characters, require('../routes/characters')),
         this.app.use(this.paths.genres, require('../routes/genres')),
         this.app.use(this.paths.movies, require('../routes/movies')),
-        this.app.use(this.paths.upload, require('../routes/upload'))
+        this.app.use(this.paths.upload, require('../routes/uploads'))
     }
 
     listen() {
         this.app.listen(this.port, () => {
-            console.log(`${'Servidor corriendo en puerto'.green}`);
+            console.log(`${'Servidor corriendo en puerto'.green} ${this.port}`);
         });
     }
 

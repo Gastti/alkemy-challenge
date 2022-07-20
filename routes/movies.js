@@ -46,6 +46,8 @@ router.delete('/:idMovie', [
     JWTValidation
 ], deleteMovie)
 
-router.post('/:idMovie/characters/:idChar', addCharacter);
+router.post('/:idMovie/addcharacter/:idChar', [
+    JWTValidation
+], addCharacter);
 
 module.exports = router;

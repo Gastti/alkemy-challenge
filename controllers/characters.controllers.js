@@ -2,34 +2,64 @@ const { response } = require('express');
 const Character = require('../models/character');
 const Movie = require('../models/movie');
 const { uploadNewFile } = require('../helpers/upload-file');
+const { Op } = require("sequelize");
 
 const getCharacters = async (req, res = response) => {
 
-    const { name, age } = req.query;
-
+    const { name, age, movies } = req.query;
     if (name) {
 
+        const findName = name ? name : '';
+
         const characters = await Character.findAll({
-            where: { name: name },
+            where: {
+                [Op.or]: [{
+                    name: {
+                        [Op.substring]: findName
+                    }
+                }]
+            },
             attributes: ['name', 'img']
         })
 
-        return res.json({
-            data: characters
-        })
+        return res.json({ data: characters })
 
     }
 
     if (age) {
 
+        const findAge = age ? age : '';
+
         const characters = await Character.findAll({
-            where: { age: age },
-            attributes: ['name', 'img', 'age']
+            where: {
+                [Op.or]: [{
+                    age: {
+                        [Op.like]: findAge
+                    }
+                }]
+            },
+            attributes: ['name', 'img']
         })
 
-        return res.json({
-            data: characters
-        })
+        return res.json({ data: characters })
+
+    }
+
+    if (movies) {
+
+        const movie = await Movie.findByPk(movies, { 
+            include: [{
+                model: Character,
+                attributes: ['name', 'img'],
+                through: {
+                    attributes: []
+                }
+            }] 
+        });
+        const characters = movie.characters;
+
+
+        return res.json({ data: characters })
 
     }
 
@@ -98,7 +128,7 @@ const postCharacter = async (req, res) => {
 
         const characterData = character[0];
         const image = await uploadNewFile(req.files, ['png', 'jpg', 'jpeg', 'gif'], 'characters');
-        characterData.img = image;
+        characterData.img = `/uploads/characters/${image}`;
         await characterData.save();
 
         res.json({
@@ -143,8 +173,8 @@ const updateCharacter = async (req, res) => {
         }
 
         if (req.files) {
-            const image = await uploadNewFile(req.files, ['png', 'jpg', 'jpeg', 'gif'], 'images');
-            character.img = image;
+            const image = await uploadNewFile(req.files, ['png', 'jpg', 'jpeg', 'gif'], 'characters');
+            character.img = `/uploads/characters/${image}`;
             await character.save();
         }
 

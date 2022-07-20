@@ -6,8 +6,8 @@ const Character = db.define('characters', {
     id: { type: DataTypes.INTEGER, primaryKey: true, allowNull: false, autoIncrement: true },
     img: { type: DataTypes.TEXT },
     name: { type: DataTypes.TEXT, allowNull: false },
-    age: { type: DataTypes.INTEGER, allowNull: false },
-    weight: { type: DataTypes.INTEGER, allowNull: false },
+    age: { type: DataTypes.TEXT, allowNull: false },
+    weight: { type: DataTypes.TEXT, allowNull: false },
     story: { type: DataTypes.TEXT, allowNull: false }
 }, {
     timestamps: false

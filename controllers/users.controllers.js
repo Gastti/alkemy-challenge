@@ -1,20 +1,45 @@
 const bcryptjs = require('bcryptjs');
 const { response } = require('express');
 const { createToken } = require('../helpers/jwt-generator');
+const { Op } = require("sequelize");
 const User = require('../models/user');
-
 
 const Register = async (req, res = response) => {
 
-    const { nickname, email, password } = req.body;
-    const user = await User.create({nickname, email, password});
+    try {
 
-    const salt = bcryptjs.genSaltSync(10);
-    user.password = bcryptjs.hashSync(password, salt)
-    user.save();
-    res.json({
-        user
-    })
+        const { nickname, email, password } = req.body;
+        const salt = bcryptjs.genSaltSync(10);
+
+        const user = await User.findOrCreate({
+            where: {
+                [Op.or]: [
+                    { nickname: nickname },
+                    { email: email }
+                ]
+            },
+            defaults: {
+                nickname,
+                email,
+                password: bcryptjs.hashSync(password, salt)
+            }
+        })
+
+        const userExists = user[1];
+        if (!userExists) {
+            return res.status(400).json({
+                msg: 'Ya existe un usuario con este Nickname o Email.'
+            })
+        }
+
+        res.json({ data: user })
+
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            msg: 'Error en Register, ubicado en "users.controllers.js"'
+        })
+    }
 
 }
 
@@ -23,7 +48,7 @@ const Login = async (req, res = response) => {
     const { email, password } = req.body;
 
     try {
-        
+
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({
@@ -37,7 +62,7 @@ const Login = async (req, res = response) => {
             })
         }
 
-        const validPassword = bcryptjs.compareSync( password, user.password);
+        const validPassword = bcryptjs.compareSync(password, user.password);
         if (!validPassword) {
             return res.status(400).json({
                 msg: 'Contraseña incorrecta.'

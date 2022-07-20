@@ -3,6 +3,7 @@ const Movie = require('../models/movie');
 const Genre = require('../models/genre');
 const Character = require('../models/character');
 const { uploadNewFile } = require('../helpers/upload-file');
+const { Op } = require("sequelize");
 
 const getMovies = async (req, res = response) => {
 
@@ -12,21 +13,40 @@ const getMovies = async (req, res = response) => {
 
         if (name) {
             const movies = await Movie.findAll({
-                where: { title: name },
-                attributes: ['title', 'img']
-            });
+                where: {
+                    title: {
+                        [Op.substring]: name
+                    }
+                }
+            })
+
+            return res.json({ data: movies })
+        }
+
+        if (order) {
+            const movies = await Movie.findAll({ order: [['title', order]] })
 
             return res.json({
                 data: movies
             })
         }
 
-        if (order) {
-            const movies = await Movie.findAll({ order: [['id', order]] })
+        if (genre) {
 
+            const genres = await Genre.findByPk(genre, {
+                include: [{
+                    model: Movie,
+                    as: 'movies',
+                    attributes: ['title', 'img']
+                }]
+            })
+
+            const movies = genres.movies;
+            
             return res.json({
                 data: movies
             })
+
         }
 
         const movies = await Movie.findAll({ attributes: ['title', 'img'] });
@@ -126,7 +146,7 @@ const postMovie = async (req, res) => {
 
         const movieData = movie[0];
         const image = await uploadNewFile(req.files, ['png', 'jpg', 'jpeg', 'gif'], 'movies');
-        movieData.img = image;
+        movieData.img = `/uploads/movies/${image}`;
 
         await movieData.save();
 
@@ -172,8 +192,8 @@ const updateMovie = async (req, res) => {
         }
 
         if (req.files) {
-            const image = await uploadNewFile(req.files, ['png', 'jpg', 'jpeg', 'gif'], 'images');
-            movie.img = image;
+            const image = await uploadNewFile(req.files, ['png', 'jpg', 'jpeg', 'gif'], 'movies');
+            movie.img = `/uploads/movies/${image}`;
             await movie.save();
         }
 
