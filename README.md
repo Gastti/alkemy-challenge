@@ -39,6 +39,11 @@ https://alkemy-challenge-gastti.herokuapp.com/characters/:id
 https://alkemy-challenge-gastti.herokuapp.com/characters/:id
 ```
 
+- Agregar Película
+```
+https://alkemy-challenge-gastti.herokuapp.com/characters/:id/addmovie/:id
+```
+
 Películas
 ---
 - Crear / Listar
