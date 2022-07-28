@@ -17,6 +17,7 @@ https://alkemy-challenge-gastti.herokuapp.com/auth/register
 ```
 
 - Inicio de Sesión
+- Es necesario iniciar sesión para obtener el token ya que la mayoria de los endpoints lo necesitan mediante la key "token" en los headers.
 ```
 https://alkemy-challenge-gastti.herokuapp.com/auth/login
 ```
