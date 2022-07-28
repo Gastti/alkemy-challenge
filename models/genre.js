@@ -11,6 +11,6 @@ const Genre = db.define('genres', {
 });
 
 Genre.hasMany(Movie, { as: 'movies', foreignKey: 'id_genre'})
-// Movie.belongsTo(Genre, { as: 'genre' })
+Movie.belongsTo(Genre, { foreignKey: 'id_genre'});
 
 module.exports = Genre;

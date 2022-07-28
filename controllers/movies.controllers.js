@@ -104,7 +104,7 @@ const getMovieDetails = async (req, res) => {
                 }]
         })
 
-        movieDetails.genress = 'Prueba'
+        movieDetails.genres = 'Prueba'
         await movieDetails.save();
 
         res.json({

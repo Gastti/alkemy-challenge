@@ -11,5 +11,4 @@ const Movie = db.define('movies', {
     updatedAt: false
 });
 
-
 module.exports = Movie;
